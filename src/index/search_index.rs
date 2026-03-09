@@ -74,7 +74,7 @@ impl SearchIndex {
 
         let reader = index
             .reader_builder()
-            .reload_policy(ReloadPolicy::OnCommitWithDelay)
+            .reload_policy(ReloadPolicy::Manual)
             .try_into()?;
 
         let writer = index.writer(50_000_000)?; // 50MB heap
@@ -137,10 +137,11 @@ impl SearchIndex {
         Ok(count)
     }
 
-    /// Commit pending writes to disk.
+    /// Commit pending writes to disk and reload the reader so changes are immediately visible.
     pub fn commit(&self) -> Result<()> {
         let mut writer = self.writer.lock().map_err(|e| anyhow::anyhow!("Lock poisoned: {}", e))?;
         writer.commit()?;
+        self.reader.reload()?;
         Ok(())
     }
 
@@ -221,5 +222,81 @@ impl SearchIndex {
         let results = self.search(&format!("\"{}\"", id), 1)?;
         // Filter to exact ID match
         Ok(results.into_iter().find(|r| r.id == id))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    fn make_doc(id: &str, title: &str, body: &str) -> Document {
+        Document {
+            id: id.to_string(),
+            title: title.to_string(),
+            body: body.to_string(),
+            url: None,
+            metadata: None,
+        }
+    }
+
+    #[test]
+    fn test_add_and_search() {
+        let dir = TempDir::new().unwrap();
+        let index = SearchIndex::open_or_create(dir.path(), "test").unwrap();
+
+        let docs = vec![
+            make_doc("1", "Rust programming", "systems language with memory safety"),
+            make_doc("2", "Python scripting", "dynamic language for data science"),
+        ];
+        index.add_documents(&docs).unwrap();
+        index.commit().unwrap();
+
+        let results = index.search("rust", 10).unwrap();
+        assert!(!results.is_empty());
+        assert_eq!(results[0].id, "1");
+    }
+
+    #[test]
+    fn test_search_returns_empty_on_no_match() {
+        let dir = TempDir::new().unwrap();
+        let index = SearchIndex::open_or_create(dir.path(), "test").unwrap();
+        index.add_documents(&[make_doc("1", "Hello world", "some text")]).unwrap();
+        index.commit().unwrap();
+
+        let results = index.search("xylophone", 10).unwrap();
+        assert!(results.is_empty());
+    }
+
+    #[test]
+    fn test_delete_document() {
+        let dir = TempDir::new().unwrap();
+        let index = SearchIndex::open_or_create(dir.path(), "test").unwrap();
+
+        index.add_documents(&[make_doc("1", "Unique zephyr title", "unique zephyr body")]).unwrap();
+        index.commit().unwrap();
+
+        let before = index.search("zephyr", 10).unwrap();
+        assert!(!before.is_empty());
+
+        index.delete_document("1").unwrap();
+        index.commit().unwrap();
+
+        let after = index.search("zephyr", 10).unwrap();
+        assert!(after.is_empty());
+    }
+
+    #[test]
+    fn test_document_fields_preserved() {
+        let dir = TempDir::new().unwrap();
+        let index = SearchIndex::open_or_create(dir.path(), "test").unwrap();
+
+        let mut doc = make_doc("42", "Field test", "checking stored fields");
+        doc.url = Some("https://example.com".to_string());
+        index.add_documents(&[doc]).unwrap();
+        index.commit().unwrap();
+
+        let results = index.search("checking", 10).unwrap();
+        assert_eq!(results[0].url, Some("https://example.com".to_string()));
     }
 }

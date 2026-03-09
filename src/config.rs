@@ -95,3 +95,36 @@ impl Default for AppConfig {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_defaults() {
+        let config = AppConfig::default();
+        assert_eq!(config.server.host, "0.0.0.0");
+        assert_eq!(config.server.port, 7700);
+        assert_eq!(config.index.data_dir, "./data");
+        assert_eq!(config.index.max_results, 20);
+        assert!(!config.ai.enabled);
+        assert_eq!(config.ai.provider, "openai_compatible");
+        assert_eq!(config.ai.embedding_dims, 768);
+        assert_eq!(config.ai.embedding_model, "text-embedding-3-small");
+    }
+
+    #[test]
+    fn test_load_missing_file_falls_back_to_defaults() {
+        let config = AppConfig::load("nonexistent_kakugosearch.toml").unwrap();
+        assert_eq!(config.server.port, 7700);
+    }
+
+    #[test]
+    fn test_load_partial_toml() {
+        let toml = "[server]\nport = 9000\n[index]\n[ai]\n";
+        let config: AppConfig = toml::from_str(toml).unwrap();
+        assert_eq!(config.server.port, 9000);
+        assert_eq!(config.server.host, "0.0.0.0"); // default preserved
+        assert!(!config.ai.enabled);               // default preserved
+    }
+}

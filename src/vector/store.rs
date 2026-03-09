@@ -147,3 +147,57 @@ fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
 
     dot / (norm_a * norm_b)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_upsert_and_search() {
+        let store = VectorStore::new(3, None::<&str>).unwrap();
+        store.upsert("a", vec![1.0, 0.0, 0.0]).unwrap();
+        store.upsert("b", vec![0.0, 1.0, 0.0]).unwrap();
+        store.upsert("c", vec![0.9, 0.1, 0.0]).unwrap();
+
+        let results = store.search(&[1.0, 0.0, 0.0], 2).unwrap();
+        assert_eq!(results.len(), 2);
+        assert_eq!(results[0].id, "a");
+        assert!((results[0].score - 1.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_delete() {
+        let store = VectorStore::new(2, None::<&str>).unwrap();
+        store.upsert("x", vec![1.0, 0.0]).unwrap();
+        assert_eq!(store.len(), 1);
+        store.delete("x").unwrap();
+        assert_eq!(store.len(), 0);
+    }
+
+    #[test]
+    fn test_dimension_mismatch_on_upsert() {
+        let store = VectorStore::new(3, None::<&str>).unwrap();
+        assert!(store.upsert("a", vec![1.0, 0.0]).is_err());
+    }
+
+    #[test]
+    fn test_dimension_mismatch_on_search() {
+        let store = VectorStore::new(3, None::<&str>).unwrap();
+        assert!(store.search(&[1.0, 0.0], 5).is_err());
+    }
+
+    #[test]
+    fn test_cosine_similarity_identical() {
+        assert!((cosine_similarity(&[1.0, 1.0], &[1.0, 1.0]) - 1.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_cosine_similarity_orthogonal() {
+        assert!((cosine_similarity(&[1.0, 0.0], &[0.0, 1.0]) - 0.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_cosine_similarity_zero_vector() {
+        assert_eq!(cosine_similarity(&[0.0, 0.0], &[1.0, 0.0]), 0.0);
+    }
+}

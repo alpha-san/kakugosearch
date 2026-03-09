@@ -89,3 +89,76 @@ impl AiReranker {
         self.provider.embed_batch(texts).await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ai::provider::{AiProvider, ScoredDocument};
+    use async_trait::async_trait;
+    use std::sync::Arc;
+
+    struct MockProvider {
+        fixed_score: f32,
+    }
+
+    #[async_trait]
+    impl AiProvider for MockProvider {
+        fn name(&self) -> &str { "mock" }
+
+        async fn embed(&self, _text: &str) -> Result<Vec<f32>> {
+            Ok(vec![1.0])
+        }
+
+        async fn rerank(
+            &self,
+            _query: &str,
+            documents: Vec<(String, String)>,
+        ) -> Result<Vec<ScoredDocument>> {
+            Ok(documents
+                .iter()
+                .map(|(id, _)| ScoredDocument { id: id.clone(), score: self.fixed_score })
+                .collect())
+        }
+
+        fn embedding_dims(&self) -> usize { 1 }
+    }
+
+    #[tokio::test]
+    async fn test_rerank_empty_candidates() {
+        let reranker = AiReranker::new(Arc::new(MockProvider { fixed_score: 0.5 }));
+        let result = reranker.rerank("query", vec![], 0.5).await.unwrap();
+        assert!(result.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_rerank_pure_text_weight_preserves_bm25_order() {
+        let reranker = AiReranker::new(Arc::new(MockProvider { fixed_score: 0.0 }));
+
+        let candidates = vec![
+            ("doc1".to_string(), "text".to_string(), 10.0_f32),
+            ("doc2".to_string(), "text".to_string(), 5.0_f32),
+            ("doc3".to_string(), "text".to_string(), 1.0_f32),
+        ];
+
+        // ai_weight=0.0 means ranking is purely by BM25 score
+        let result = reranker.rerank("query", candidates, 0.0).await.unwrap();
+        assert_eq!(result[0].id, "doc1");
+        assert_eq!(result[1].id, "doc2");
+        assert_eq!(result[2].id, "doc3");
+    }
+
+    #[tokio::test]
+    async fn test_rerank_scores_are_normalized() {
+        let reranker = AiReranker::new(Arc::new(MockProvider { fixed_score: 0.8 }));
+
+        let candidates = vec![
+            ("doc1".to_string(), "text".to_string(), 3.0_f32),
+            ("doc2".to_string(), "text".to_string(), 1.0_f32),
+        ];
+
+        let result = reranker.rerank("query", candidates, 0.5).await.unwrap();
+        for doc in &result {
+            assert!(doc.score >= 0.0 && doc.score <= 1.0, "score {} out of [0, 1]", doc.score);
+        }
+    }
+}
