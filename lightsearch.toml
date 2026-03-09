@@ -1,0 +1,37 @@
+# LightSearch Configuration
+# ========================
+
+[server]
+host = "0.0.0.0"
+port = 7700
+
+[index]
+data_dir = "./data"
+max_results = 20
+
+[ai]
+# Set to true to enable AI-powered semantic search and reranking
+enabled = false
+
+# Provider type. All of these use the OpenAI-compatible API:
+#   "openai"     - OpenAI directly (default base_url: api.openai.com)
+#   "openrouter" - OpenRouter (default base_url: openrouter.ai/api/v1)
+#   "ollama"     - Local Ollama (default base_url: localhost:11434)
+#   "vllm"       - vLLM server (default base_url: localhost:8000)
+#   "lmstudio"   - LM Studio (default base_url: localhost:1234)
+provider = "openai_compatible"
+
+# Override the base URL if needed
+# base_url = "https://api.openai.com/v1"
+
+# API key (can also use LIGHTSEARCH_AI_API_KEY env var)
+# api_key = "sk-..."
+
+# Embedding model to use
+embedding_model = "text-embedding-3-small"
+
+# Embedding dimensions (must match your model)
+embedding_dims = 768
+
+# Optional: dedicated rerank model
+# rerank_model = "rerank-english-v3.0"
