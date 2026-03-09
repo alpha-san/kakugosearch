@@ -10,11 +10,11 @@ mod vector;
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env().add_directive("lightsearch=info".parse()?))
+        .with_env_filter(EnvFilter::from_default_env().add_directive("kakugosearch=info".parse()?))
         .init();
 
-    let config = config::AppConfig::load("lightsearch.toml")?;
-    tracing::info!("Starting LightSearch v{}", env!("CARGO_PKG_VERSION"));
+    let config = config::AppConfig::load("kakugosearch.toml")?;
+    tracing::info!("Starting KakugoSearch v{}", env!("CARGO_PKG_VERSION"));
 
     let app_state = api::AppState::new(&config).await?;
     let app = api::router(app_state);

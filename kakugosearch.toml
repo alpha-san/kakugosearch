@@ -1,5 +1,5 @@
-# LightSearch Configuration
-# ========================
+# KakugoSearch Configuration
+# ==========================
 
 [server]
 host = "0.0.0.0"
@@ -24,7 +24,7 @@ provider = "openai_compatible"
 # Override the base URL if needed
 # base_url = "https://api.openai.com/v1"
 
-# API key (can also use LIGHTSEARCH_AI_API_KEY env var)
+# API key (can also use KAKUGOSEARCH_AI_API_KEY env var)
 # api_key = "sk-..."
 
 # Embedding model to use

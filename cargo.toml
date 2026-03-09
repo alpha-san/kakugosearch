@@ -1,5 +1,5 @@
 [package]
-name = "lightsearch"
+name = "kakugosearch"
 version = "0.1.0"
 edition = "2021"
 description = "A lightweight search engine with pluggable AI reranking"

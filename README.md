@@ -1,4 +1,4 @@
-# LightSearch
+# KakugoSearch
 
 A lightweight, AI-enhanced search engine with a pluggable provider architecture.
 
@@ -9,10 +9,10 @@ A lightweight, AI-enhanced search engine with a pluggable provider architecture.
 cargo build --release
 
 # Run with defaults (no AI, just full-text search)
-./target/release/lightsearch
+./target/release/kakugosearch
 
 # Or with AI enabled (set your API key)
-LIGHTSEARCH_AI_API_KEY=sk-... cargo run
+KAKUGOSEARCH_AI_API_KEY=sk-... cargo run
 ```
 
 ## API Usage
@@ -71,11 +71,11 @@ curl -X DELETE http://localhost:7700/indexes/default/documents/1
 
 ## Configuration
 
-Edit `lightsearch.toml` or set environment variables:
+Edit `kakugosearch.toml` or set environment variables:
 
 | Setting | Env Var | Default |
 |---------|---------|---------|
-| AI API Key | `LIGHTSEARCH_AI_API_KEY` | — |
+| AI API Key | `KAKUGOSEARCH_AI_API_KEY` | — |
 | Server port | — | 7700 |
 
 ### AI Provider Examples

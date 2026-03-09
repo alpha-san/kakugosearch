@@ -4,6 +4,7 @@ use std::path::Path;
 use tantivy::collector::TopDocs;
 use tantivy::query::QueryParser;
 use tantivy::schema::*;
+use tantivy::{TantivyDocument, schema::OwnedValue};
 use tantivy::{doc, Index, IndexReader, IndexWriter, ReloadPolicy};
 
 /// A document stored in the search index.
@@ -165,35 +166,35 @@ impl SearchIndex {
         let mut results = Vec::with_capacity(top_docs.len());
 
         for (score, doc_address) in top_docs {
-            let retrieved = searcher.doc(doc_address)?;
+            let retrieved: TantivyDocument = searcher.doc(doc_address)?;
 
             let id = retrieved
                 .get_first(self.f_id)
-                .and_then(|v| v.as_str())
+                .and_then(|v: &OwnedValue| v.as_str())
                 .unwrap_or("")
                 .to_string();
 
             let title = retrieved
                 .get_first(self.f_title)
-                .and_then(|v| v.as_str())
+                .and_then(|v: &OwnedValue| v.as_str())
                 .unwrap_or("")
                 .to_string();
 
             let body = retrieved
                 .get_first(self.f_body)
-                .and_then(|v| v.as_str())
+                .and_then(|v: &OwnedValue| v.as_str())
                 .unwrap_or("")
                 .to_string();
 
             let url = retrieved
                 .get_first(self.f_url)
-                .and_then(|v| v.as_str())
+                .and_then(|v: &OwnedValue| v.as_str())
                 .map(|s| if s.is_empty() { None } else { Some(s.to_string()) })
                 .unwrap_or(None);
 
             let metadata = retrieved
                 .get_first(self.f_metadata)
-                .and_then(|v| v.as_str())
+                .and_then(|v: &OwnedValue| v.as_str())
                 .and_then(|s| {
                     if s.is_empty() {
                         None

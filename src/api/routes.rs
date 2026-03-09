@@ -21,12 +21,12 @@ pub fn router(state: AppState) -> Router {
         // Health
         .route("/health", get(health))
         // Document management
-        .route("/indexes/{index_name}/documents", post(add_documents))
-        .route("/indexes/{index_name}/documents/{doc_id}", get(get_document))
-        .route("/indexes/{index_name}/documents/{doc_id}", delete(delete_document))
+        .route("/indexes/:index_name/documents", post(add_documents))
+        .route("/indexes/:index_name/documents/:doc_id", get(get_document))
+        .route("/indexes/:index_name/documents/:doc_id", delete(delete_document))
         // Search
-        .route("/indexes/{index_name}/search", get(search))
-        .route("/indexes/{index_name}/search", post(search_post))
+        .route("/indexes/:index_name/search", get(search))
+        .route("/indexes/:index_name/search", post(search_post))
         // Index management
         .route("/indexes", get(list_indexes))
         .layer(CorsLayer::permissive())

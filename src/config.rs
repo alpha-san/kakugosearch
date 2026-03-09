@@ -35,7 +35,7 @@ pub struct AiConfig {
     /// Base URL for the AI provider (OpenAI-compatible endpoint)
     #[serde(default)]
     pub base_url: Option<String>,
-    /// API key (can also be set via LIGHTSEARCH_AI_API_KEY env var)
+    /// API key (can also be set via KAKUGOSEARCH_AI_API_KEY env var)
     #[serde(default)]
     pub api_key: Option<String>,
     /// Model name for embeddings

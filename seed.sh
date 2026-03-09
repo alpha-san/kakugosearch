@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Seed LightSearch with sample documents for testing.
+# Seed KakugoSearch with sample documents for testing.
 # Usage: ./examples/seed.sh
 
-BASE_URL="${LIGHTSEARCH_URL:-http://localhost:7700}"
+BASE_URL="${KAKUGOSEARCH_URL:-http://localhost:7700}"
 INDEX="default"
 
 echo "Seeding $BASE_URL/indexes/$INDEX ..."

@@ -16,7 +16,7 @@ pub fn build_provider(config: &AiConfig) -> Result<Arc<dyn AiProvider>> {
     let api_key = config
         .api_key
         .clone()
-        .or_else(|| std::env::var("LIGHTSEARCH_AI_API_KEY").ok())
+        .or_else(|| std::env::var("KAKUGOSEARCH_AI_API_KEY").ok())
         .unwrap_or_default();
 
     match config.provider.as_str() {
