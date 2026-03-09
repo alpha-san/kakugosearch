@@ -16,7 +16,7 @@ cargo build --release
 cargo run
 
 # Run with AI enabled
-LIGHTSEARCH_AI_API_KEY=sk-... cargo run
+KAKUGOSEARCH_AI_API_KEY=sk-... cargo run
 
 # Run tests
 cargo test
@@ -24,6 +24,12 @@ cargo test
 # Run a single test
 cargo test <test_name>
 ```
+
+## Testing Policy
+
+- Always run `cargo build` to confirm the project compiles before considering a change done.
+- Always run `cargo test` after changing functionality to confirm nothing is broken.
+- Always add tests when adding new functionality.
 
 ## Source File Layout
 

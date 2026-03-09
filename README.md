@@ -117,6 +117,44 @@ embedding_model = "BAAI/bge-base-en-v1.5"
 embedding_dims = 768
 ```
 
+## Performance
+
+Benchmarked on Apple M1 Pro. Run `cargo bench` to reproduce, or `cargo run --example load_test --release` for the concurrency results.
+
+### Indexing throughput
+
+| Batch size | Time per commit | Throughput |
+|------------|----------------|------------|
+| 100 docs   | 224 ms         | 447 docs/s |
+| 1 000 docs | 223 ms         | 4 500 docs/s |
+| 10 000 docs | 214 ms        | 46 800 docs/s |
+
+Commit time is dominated by Tantivy's segment merge and fsync, not document count — hence throughput scales nearly linearly with batch size.
+
+### Search latency (10 000-doc index, BM25)
+
+| Query | p50 |
+|-------|-----|
+| `machine learning` | 92 µs |
+| `memory safety concurrency` | 141 µs |
+| `natural language processing algorithms` | 164 µs |
+| `database query optimization` | 115 µs |
+| `distributed systems performance` | 220 µs |
+
+Latency scales with the number of posting list entries visited, not total index size.
+
+### Search latency vs index size
+
+```
+Index size      p50 latency
+──────────────────────────────
+  1 000 docs     91 µs  ████░░░░░░░░░░░░░░░░
+  5 000 docs    114 µs  █████░░░░░░░░░░░░░░░
+ 10 000 docs    143 µs  ██████░░░░░░░░░░░░░░
+```
+
+Sub-linear growth — query parsing and scorer initialisation are the dominant fixed costs at these index sizes.
+
 ## Architecture
 
 ```
